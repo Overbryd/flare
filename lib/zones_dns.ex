@@ -8,5 +8,6 @@ defmodule Flare.Zones.DNS do
         ttl: ttl,
         proxied: proxied,
     })
-    
+  def delete(zone, id), do: Flare.delete("zones/#{zone}/dns_records/#{id}")
 end
+

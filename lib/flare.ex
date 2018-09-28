@@ -10,6 +10,7 @@ defmodule Flare do
 	def post(path, body \\ nil, query \\ []), do: request(path, "POST", body, query)
 	def put(path, body \\ nil, query \\ []), do: request(path, "PUT", body, query)
 	def patch(path, body \\ nil, query \\ []), do: request(path, "PATCH", body, query)
+	def delete(path, body \\ nil, query \\ []), do: request(path, "DELETE", body, query)
 
 	def request(path, method, body \\ nil, query \\ []) do
 		url =
@@ -17,15 +18,21 @@ defmodule Flare do
 			|> URI.merge(path)
 			|> URI.to_string
 			|> attach_query(query)
-		json = Poison.encode!(body)
 
-		Conn.new
+		conn = Conn.new
 		|> Conn.put_req_url(url)
 		|> Conn.put_req_method(method)
 		|> Conn.put_req_header("Content-Type", "application/json")
 		|> Conn.put_req_header("X-Auth-Key", key())
 		|> Conn.put_req_header("X-Auth-Email", email())
-		|> Conn.put_req_body(json)
+
+    conn = if body do
+      Conn.put_req_body(conn, Poison.encode!(body))
+    else
+      conn
+    end
+
+    conn
 		|> Conn.execute
 		|> case do
 			{:ok, result} -> process(result)
